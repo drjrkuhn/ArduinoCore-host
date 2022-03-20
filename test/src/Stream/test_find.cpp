@@ -8,7 +8,7 @@
 
 #include <catch.hpp>
 
-#include <StreamMock.h>
+#include "StreamMocks.h"
 
 /**************************************************************************************
  * TEST CODE
@@ -17,6 +17,7 @@
 TEST_CASE ("Testing find(const char *target)", "[Stream-find-01]")
 {
   StreamMock mock;
+  mock.setTimeout(10);
 
   WHEN ("'target' is contained in stream")
   {
@@ -37,10 +38,11 @@ TEST_CASE ("Testing find(const char *target)", "[Stream-find-01]")
 TEST_CASE ("Testing find(const char *target, size_t length)", "[Stream-find-02]")
 {
   StreamMock mock;
+  mock.setTimeout(10);
 
   WHEN ("'target' is contained in stream")
   {
-    mock << "This is a test string";
+    mock << "teis is a test string";
 
     /* 'length' should actually be '4' or strlen("test"). I'd rather
      * think this API should not be exposed at all.
@@ -60,6 +62,7 @@ TEST_CASE ("Testing find(const char *target, size_t length)", "[Stream-find-02]"
 TEST_CASE ("Testing find(char target)", "[Stream-find-03]")
 {
   StreamMock mock;
+  mock.setTimeout(10);
 
   WHEN ("'target' is contained in stream")
   {
@@ -76,3 +79,25 @@ TEST_CASE ("Testing find(char target)", "[Stream-find-03]")
     REQUIRE(mock.readString() == arduino::String(""));
   }
 }
+
+TEST_CASE("Testing find(std::string target)", "[Stream-find-04]")
+{
+    StreamMock mock;
+    mock.setTimeout(10);
+
+    WHEN("'target' is contained in stream")
+    {
+        mock << "This is a test string";
+
+        REQUIRE(mock.find(std::string("test")) == true);
+        REQUIRE(mock.readStdString() == " string");
+    }
+    WHEN("'target' is not contained in stream")
+    {
+        mock << "This is a string";
+
+        REQUIRE(mock.find(std::string("test")) == false);
+        REQUIRE(mock.readStdString() == "");
+    }
+}
+

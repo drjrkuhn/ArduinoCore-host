@@ -22,25 +22,34 @@
 
 #include <ctype.h>
 
+#if !defined(__ALWAYS_INLINE__)
+#if defined(__GNUC__) && __GNUC__ > 3
+#    define __ALWAYS_INLINE__	inline __attribute__ ((__always_inline__))
+#  elif defined(_MSC_VER)
+#    define __ALWAYS_INLINE__	__forceinline
+#  else
+#    define __ALWAYS_INLINE__ inline
+#  endif
+#endif
 namespace arduino {
 
 // WCharacter.h prototypes
-inline bool isAlphaNumeric(int c) __attribute__((always_inline));
-inline bool isAlpha(int c) __attribute__((always_inline));
-inline bool isAscii(int c) __attribute__((always_inline));
-inline bool isWhitespace(int c) __attribute__((always_inline));
-inline bool isControl(int c) __attribute__((always_inline));
-inline bool isDigit(int c) __attribute__((always_inline));
-inline bool isGraph(int c) __attribute__((always_inline));
-inline bool isLowerCase(int c) __attribute__((always_inline));
-inline bool isPrintable(int c) __attribute__((always_inline));
-inline bool isPunct(int c) __attribute__((always_inline));
-inline bool isSpace(int c) __attribute__((always_inline));
-inline bool isUpperCase(int c) __attribute__((always_inline));
-inline bool isHexadecimalDigit(int c) __attribute__((always_inline));
-inline int toAscii(int c) __attribute__((always_inline));
-inline int toLowerCase(int c) __attribute__((always_inline));
-inline int toUpperCase(int c)__attribute__((always_inline));
+__ALWAYS_INLINE__ bool isAlphaNumeric(int c);
+__ALWAYS_INLINE__ bool isAlpha(int c);
+__ALWAYS_INLINE__ bool isAscii(int c);
+__ALWAYS_INLINE__ bool isWhitespace(int c);
+__ALWAYS_INLINE__ bool isControl(int c);
+__ALWAYS_INLINE__ bool isDigit(int c);
+__ALWAYS_INLINE__ bool isGraph(int c);
+__ALWAYS_INLINE__ bool isLowerCase(int c);
+__ALWAYS_INLINE__ bool isPrintable(int c);
+__ALWAYS_INLINE__ bool isPunct(int c);
+__ALWAYS_INLINE__ bool isSpace(int c);
+__ALWAYS_INLINE__ bool isUpperCase(int c);
+__ALWAYS_INLINE__ bool isHexadecimalDigit(int c);
+__ALWAYS_INLINE__ int toAscii(int c);
+__ALWAYS_INLINE__ int toLowerCase(int c);
+__ALWAYS_INLINE__ int toUpperCase(int c);
 
 
 // Checks for an alphanumeric character. 

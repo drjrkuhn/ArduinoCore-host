@@ -10,6 +10,8 @@
 
 #include <Common.h>
 
+using namespace arduino;
+
 /**************************************************************************************
  * TEST CODE
  **************************************************************************************/
@@ -41,36 +43,36 @@ TEST_CASE ("Calling 'max(a,b)' with type(a) != type(b)", "[max-04]")
   {
     uint8_t  const a = 32;
     uint16_t const b = 10;
-    REQUIRE(typeid(max(a,b)) == typeid(int));
+    REQUIRE(typeid(max(a,b)) == typeid(a+b));
   }
   WHEN("type(A) = uint16_t, type(b) = uint32_t")
   {
     uint16_t const a = 32;
     uint32_t const b = 10;
-    REQUIRE(typeid(max(a,b)) == typeid(unsigned int));
+    REQUIRE(typeid(max(a,b)) == typeid(a+b));
   }
   WHEN("type(A) = uint32_t, type(b) = uint64_t")
   {
     uint32_t const a = 32;
     uint64_t const b = 10;
-    REQUIRE(typeid(max(a,b)) == typeid(unsigned long));
+    REQUIRE(typeid(max(a,b)) == typeid(a+b));
   }
   WHEN("type(A) = int8_t, type(b) = int16_t")
   {
     int8_t  const a = -32;
     int16_t const b = -10;
-    REQUIRE(typeid(max(a,b)) == typeid(int));
+    REQUIRE(typeid(max(a,b)) == typeid(a+b));
   }
   WHEN("type(A) = int16_t, type(b) = int32_t")
   {
     int16_t const a = -32;
     int32_t const b = -10;
-    REQUIRE(typeid(max(a,b)) == typeid(int));
+    REQUIRE(typeid(max(a,b)) == typeid(a+b));
   }
   WHEN("type(A) = int32_t, type(b) = int64_t")
   {
     int32_t const a = -32;
     int64_t const b = -10;
-    REQUIRE(typeid(max(a,b)) == typeid(long));
+    REQUIRE(typeid(max(a,b)) == typeid(a+b));
   }
 }

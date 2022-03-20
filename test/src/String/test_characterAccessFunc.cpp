@@ -8,9 +8,7 @@
 
 #include <catch.hpp>
 
-#include <String.h>
-
-#include "StringPrinter.h"
+#include <WString.h>
 
 /**************************************************************************************
  * TEST CODE
@@ -33,20 +31,20 @@ TEST_CASE ("Testing String::getBytes(unsigned char, unsigned int, unsigned int)"
 {
   WHEN("No bufsize") {
     arduino::String str("Hello");
-    unsigned char buf[2];
+    unsigned char buf[3];
     str.getBytes(buf, 0, 0);
   }
 
   WHEN("Index >= len") {
     arduino::String str("Hello");
-    unsigned char buf[2];
-    str.getBytes(buf, 5, 6);
+    unsigned char buf[3];
+    str.getBytes(buf, 3, 6);
   }
 
   WHEN("Valid operation") {
     arduino::String str("Hello");
-    unsigned char buf[2];
-    str.getBytes(buf, 5, 3);
+    unsigned char buf[3];
+    str.getBytes(buf, 3, 3);
     REQUIRE(buf[0] == 'l');
     REQUIRE(buf[1] == 'o');
   }

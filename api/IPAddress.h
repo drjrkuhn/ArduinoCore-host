@@ -20,8 +20,10 @@
 #pragma once
 
 #include <stdint.h>
+#include <string>
 #include "Printable.h"
-#include "String.h"
+#include "WString.h"
+#include "Print_std.h"
 
 // forward declarations of global name space friend classes
 class EthernetClass;
@@ -53,7 +55,8 @@ public:
     IPAddress(const uint8_t *address);
 
     bool fromString(const char *address);
-    bool fromString(const String &address) { return fromString(address.c_str()); }
+    bool fromString(const String& address) { return fromString(address.c_str()); }
+    bool fromString(const std::string& address) { return fromString(address.c_str()); }
 
     // Overloaded cast operator to allow IPAddress objects to be used where a pointer
     // to a four-byte uint8_t array is expected

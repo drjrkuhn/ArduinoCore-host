@@ -8,9 +8,7 @@
 
 #include <catch.hpp>
 
-#include <String.h>
-
-#include "StringPrinter.h"
+#include <WString.h>
 
 /**************************************************************************************
  * TEST CODE

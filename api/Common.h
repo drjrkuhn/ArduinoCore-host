@@ -3,6 +3,7 @@
 
 #ifdef __cplusplus
 extern "C"{
+namespace arduino {
 #endif
 
 void yield(void);
@@ -80,10 +81,10 @@ typedef uint16_t  word;
 void init(void);
 void initVariant(void);
 
-#ifndef HOST
-int atexit(void (*func)()) __attribute__((weak));
-#endif
-int main() __attribute__((weak));
+//#ifndef HOST
+//int atexit(void (*func)()) __attribute__((weak));
+//#endif
+//int main() __attribute__((weak));
 
 #ifdef EXTENDED_PIN_MODE
 // Platforms who want to declare more than 256 pins need to define EXTENDED_PIN_MODE globally
@@ -102,7 +103,7 @@ void analogWrite(pin_size_t pinNumber, int value);
 unsigned long millis(void);
 unsigned long micros(void);
 void delay(unsigned long);
-void delayMicroseconds(unsigned int us);
+void delayMicroseconds(unsigned long us);
 unsigned long pulseIn(pin_size_t pin, uint8_t state, unsigned long timeout);
 unsigned long pulseInLong(pin_size_t pin, uint8_t state, unsigned long timeout);
 
@@ -117,10 +118,12 @@ void setup(void);
 void loop(void);
 
 #ifdef __cplusplus
+} // namespace
 } // extern "C"
 #endif
 
 #ifdef __cplusplus
+namespace arduino {
   template<class T, class L> 
   auto min(const T& a, const L& b) -> decltype((b < a) ? b : a)
   {
@@ -132,6 +135,7 @@ void loop(void);
   {
     return (a < b) ? b : a;
   }
+}
 #else
 #ifndef min
 #define min(a,b) \
@@ -148,7 +152,7 @@ void loop(void);
 #endif
 
 #ifdef __cplusplus
-
+namespace arduino {
 /* C++ prototypes */
 uint16_t makeWord(uint16_t w);
 uint16_t makeWord(byte h, byte l);
@@ -166,5 +170,5 @@ long random(long);
 long random(long, long);
 void randomSeed(unsigned long);
 long map(long, long, long, long, long);
-
+} // namespace
 #endif // __cplusplus

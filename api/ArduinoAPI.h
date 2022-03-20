@@ -26,16 +26,16 @@
 #include "Binary.h"
 
 #ifdef __cplusplus
-#include "Interrupts.h"
+//#include "Interrupts.h"
 #include "IPAddress.h"
 #include "Print.h"
 #include "Printable.h"
-#include "PluggableUSB.h"
+//#include "PluggableUSB.h"
 #include "Server.h"
-#include "String.h"
+#include "WString.h"  // renamed to WString.h to not conflict with stdlib string.h on case-insensitive compilers
 #include "Stream.h"
 #include "Udp.h"
-#include "USBAPI.h"
+//#include "USBAPI.h"
 #include "WCharacter.h"
 #endif
 

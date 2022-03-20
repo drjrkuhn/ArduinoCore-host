@@ -8,7 +8,7 @@
 
 #include <catch.hpp>
 
-#include <StreamMock.h>
+#include "StreamMocks.h"
 
 /**************************************************************************************
  * TEST CODE
@@ -17,6 +17,7 @@
 TEST_CASE ("Testing readBytesUntil(char terminator, char *buffer, size_t length)", "[Stream-readBytesUntil-01]")
 {
   StreamMock mock;
+  mock.setTimeout(10);
 
   WHEN ("the stream is empty")
   {

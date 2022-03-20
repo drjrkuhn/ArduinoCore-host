@@ -24,14 +24,11 @@
 #ifndef __ARDUINO_STRINGS__
 #define __ARDUINO_STRINGS__
 
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#if defined(__AVR__)
-#include "avr/pgmspace.h"
-#else
-#include "deprecated-avr-comp/avr/pgmspace.h"
-#endif
+#include <cstdlib>
+#include <string>
+#include "string.h"
+#include <cctype>
+#include "deprecated/host/pgmspace.h"
 
 namespace arduino {
 
@@ -58,10 +55,13 @@ class String
 	typedef void (String::*StringIfHelperType)() const;
 	void StringIfHelper() const {}
 
-	static size_t const FLT_MAX_DECIMAL_PLACES = 10;
-	static size_t const DBL_MAX_DECIMAL_PLACES = FLT_MAX_DECIMAL_PLACES;
+	static constexpr size_t const FLT_MAX_DECIMAL_PLACES = 10;
+	static constexpr size_t const DBL_MAX_DECIMAL_PLACES = FLT_MAX_DECIMAL_PLACES;
 
 public:
+	using iterator = std::string::iterator;
+	using const_iterator = std::string::const_iterator;
+
 	// constructors
 	// creates a copy of the initial value.
 	// if the initial value is null or invalid, or if memory allocation
@@ -69,12 +69,10 @@ public:
 	// be false).
 	String(const char *cstr = "");
 	String(const char *cstr, unsigned int length);
-	String(const uint8_t *cstr, unsigned int length) : String((const char*)cstr, length) {}
+	String(const uint8_t *cstr, unsigned int length) : String(reinterpret_cast<const char*>(cstr), length) {}
 	String(const String &str);
+	String(const std::string& str);
 	String(const __FlashStringHelper *str);
-	#if __cplusplus >= 201103L || defined(__GXX_EXPERIMENTAL_CXX0X__)
-	String(String &&rval);
-	#endif
 	explicit String(char c);
 	explicit String(unsigned char, unsigned char base=10);
 	explicit String(int, unsigned char base=10);
@@ -85,12 +83,18 @@ public:
 	explicit String(double, unsigned char decimalPlaces=2);
 	~String(void);
 
+#if __cplusplus >= 201103L || defined(__GXX_EXPERIMENTAL_CXX0X__) || _MSVC_LANG >= 201402L
+	// move constructor and assignment
+	String(String&& rval);
+	String& operator = (String&& rval);
+#endif
+
 	// memory management
 	// return true on success, false on failure (in which case, the string
 	// is left unchanged).  reserve(0), if successful, will validate an
 	// invalid string (i.e., "if (s)" will be true afterwards)
 	bool reserve(unsigned int size);
-	inline unsigned int length(void) const {return len;}
+	inline unsigned int length(void) const {return static_cast<unsigned int>(buffer.length());}
 
 	// creates a copy of the assigned value.  if the value is null or
 	// invalid, or if the memory allocation fails, the string will be
@@ -98,9 +102,7 @@ public:
 	String & operator = (const String &rhs);
 	String & operator = (const char *cstr);
 	String & operator = (const __FlashStringHelper *str);
-	#if __cplusplus >= 201103L || defined(__GXX_EXPERIMENTAL_CXX0X__)
-	String & operator = (String &&rval);
-	#endif
+	String & operator = (const std::string& str);
 
 	// concatenate (works w/ built-in types)
 
@@ -108,9 +110,10 @@ public:
 	// is left unchanged).  if the argument is null or invalid, the
 	// concatenation is considered unsuccessful.
 	bool concat(const String &str);
+	bool concat(const std::string& str);
 	bool concat(const char *cstr);
 	bool concat(const char *cstr, unsigned int length);
-	bool concat(const uint8_t *cstr, unsigned int length) {return concat((const char*)cstr, length);}
+	bool concat(const uint8_t *cstr, unsigned int length) {return concat(reinterpret_cast<const char*>(cstr), length);}
 	bool concat(char c);
 	bool concat(unsigned char num);
 	bool concat(int num);
@@ -123,8 +126,9 @@ public:
 
 	// if there's not enough memory for the concatenated value, the string
 	// will be left unchanged (but this isn't signalled in any way)
-	String & operator += (const String &rhs)	{concat(rhs); return (*this);}
+	String& operator += (const String& rhs) { concat(rhs); return (*this); }
 	String & operator += (const char *cstr)		{concat(cstr); return (*this);}
+	String & operator += (const std::string& str) { concat(str); return (*this); }
 	String & operator += (char c)			{concat(c); return (*this);}
 	String & operator += (unsigned char num)		{concat(num); return (*this);}
 	String & operator += (int num)			{concat(num); return (*this);}
@@ -136,6 +140,7 @@ public:
 	String & operator += (const __FlashStringHelper *str){concat(str); return (*this);}
 
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, const String &rhs);
+	friend StringSumHelper & operator + (const StringSumHelper &lhs, const std::string &rhs);
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, const char *cstr);
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, char c);
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, unsigned char num);
@@ -148,36 +153,54 @@ public:
 	friend StringSumHelper & operator + (const StringSumHelper &lhs, const __FlashStringHelper *rhs);
 
 	// comparison (only works w/ Strings and "strings")
-	operator StringIfHelperType() const { return buffer ? &String::StringIfHelper : 0; }
+	operator StringIfHelperType() const { return !buffer.empty() ? &String::StringIfHelper : 0; }
 	int compareTo(const String &s) const;
 	int compareTo(const char *cstr) const;
+	int compareTo(const std::string& str) const;
 	bool equals(const String &s) const;
 	bool equals(const char *cstr) const;
+	bool equals(const std::string &str) const;
 
 	friend bool operator == (const String &a, const String &b) { return a.equals(b); }
 	friend bool operator == (const String &a, const char   *b) { return a.equals(b); }
 	friend bool operator == (const char   *a, const String &b) { return b == a; }
+	friend bool operator == (const String& a, const std::string &b) { return a.equals(b); }
+	friend bool operator == (const std::string &a, const String& b) { return b == a; }
 	friend bool operator <  (const String &a, const String &b) { return a.compareTo(b) < 0; }
 	friend bool operator <  (const String &a, const char   *b) { return a.compareTo(b) < 0; }
 	friend bool operator <  (const char   *a, const String &b) { return b.compareTo(a) > 0; }
+	friend bool operator <  (const String& a, const std::string& b) { return a.compareTo(b) < 0; }
+	friend bool operator <  (const std::string& a, const String& b) { return b.compareTo(a) > 0; }
 
 	friend bool operator != (const String &a, const String &b) { return !(a == b); }
-	friend bool operator != (const String &a, const char   *b) { return !(a == b); }
-	friend bool operator != (const char   *a, const String &b) { return !(a == b); }
+	friend bool operator != (const String& a, const char* b) { return !(a == b); }
+	friend bool operator != (const char* a, const String& b) { return !(a == b); }
+	friend bool operator != (const String& a, const std::string& b) { return !(a == b); }
+	friend bool operator != (const std::string& a, const String& b) { return !(a == b); }
 	friend bool operator >  (const String &a, const String &b) { return b < a; }
-	friend bool operator >  (const String &a, const char   *b) { return b < a; }
-	friend bool operator >  (const char   *a, const String &b) { return b < a; }
+	friend bool operator >  (const String& a, const char* b) { return b < a; }
+	friend bool operator >  (const char* a, const String& b) { return b < a; }
+	friend bool operator >  (const String& a, const std::string& b) { return b < a; }
+	friend bool operator >  (const std::string& a, const String& b) { return b < a; }
 	friend bool operator <= (const String &a, const String &b) { return !(b < a); }
-	friend bool operator <= (const String &a, const char   *b) { return !(b < a); }
-	friend bool operator <= (const char   *a, const String &b) { return !(b < a); }
+	friend bool operator <= (const String& a, const char* b) { return !(b < a); }
+	friend bool operator <= (const char* a, const String& b) { return !(b < a); }
+	friend bool operator <= (const String& a, const std::string& b) { return !(b < a); }
+	friend bool operator <= (const std::string& a, const String& b) { return !(b < a); }
 	friend bool operator >= (const String &a, const String &b) { return !(a < b); }
 	friend bool operator >= (const String &a, const char   *b) { return !(a < b); }
 	friend bool operator >= (const char   *a, const String &b) { return !(a < b); }
+	friend bool operator >= (const String& a, const std::string& b) { return !(a < b); }
+	friend bool operator >= (const std::string& a, const String& b) { return !(a < b); }
 
 	bool equalsIgnoreCase(const String &s) const;
 	bool startsWith( const String &prefix) const;
 	bool startsWith(const String &prefix, unsigned int offset) const;
 	bool endsWith(const String &suffix) const;
+	bool equalsIgnoreCase(const std::string& s) const;
+	bool startsWith(const std::string& prefix) const;
+	bool startsWith(const std::string& prefix, unsigned int offset) const;
+	bool endsWith(const std::string& suffix) const;
 
 	// character access
 	char charAt(unsigned int index) const;
@@ -187,22 +210,27 @@ public:
 	void getBytes(unsigned char *buf, unsigned int bufsize, unsigned int index=0) const;
 	void toCharArray(char *buf, unsigned int bufsize, unsigned int index=0) const
 		{ getBytes((unsigned char *)buf, bufsize, index); }
-	const char* c_str() const { return buffer; }
-	char* begin() { return buffer; }
-	char* end() { return buffer + length(); }
-	const char* begin() const { return c_str(); }
-	const char* end() const { return c_str() + length(); }
+	const char* c_str() const { return buffer.c_str(); }
+	const std::string str() const { return buffer; }
+	std::string::iterator /*char**/ begin() { return buffer.begin(); }
+	std::string::iterator /*char**/ end() { return buffer.end(); }
+	std::string::const_iterator /*const char**/ cbegin() const { return buffer.cbegin(); }
+	std::string::const_iterator /*const char**/ cend() const { return buffer.cend(); }
 
 	// search
 	int indexOf( char ch ) const;
 	int indexOf( char ch, unsigned int fromIndex ) const;
-	int indexOf( const String &str ) const;
-	int indexOf( const String &str, unsigned int fromIndex ) const;
+	int indexOf(const String& str) const;
+	int indexOf(const String& str, unsigned int fromIndex) const;
+	int indexOf(const std::string& str) const;
+	int indexOf(const std::string& str, unsigned int fromIndex) const;
 	int lastIndexOf( char ch ) const;
 	int lastIndexOf( char ch, unsigned int fromIndex ) const;
 	int lastIndexOf( const String &str ) const;
 	int lastIndexOf( const String &str, unsigned int fromIndex ) const;
-	String substring( unsigned int beginIndex ) const { return substring(beginIndex, len); };
+	int lastIndexOf(const std::string& str) const;
+	int lastIndexOf(const std::string& str, unsigned int fromIndex) const;
+	String substring( unsigned int beginIndex ) const { return substring(beginIndex, static_cast<unsigned int>(buffer.length())); };
 	String substring( unsigned int beginIndex, unsigned int endIndex ) const;
 
 	// modification
@@ -220,20 +248,21 @@ public:
 	double toDouble(void) const;
 
 protected:
-	char *buffer;	        // the actual char array
-	unsigned int capacity;  // the array length minus one (for the '\0')
-	unsigned int len;       // the String length (not counting the '\0')
+	std::string	 buffer;	        // the actual char array
 protected:
-	void init(void);
 	void invalidate(void);
-	bool changeBuffer(unsigned int maxStrLen);
 
 	// copy and move
 	String & copy(const char *cstr, unsigned int length);
 	String & copy(const __FlashStringHelper *pstr, unsigned int length);
-	#if __cplusplus >= 201103L || defined(__GXX_EXPERIMENTAL_CXX0X__)
+	String& copy(const std::string& str);
+#if __cplusplus >= 201103L || defined(__GXX_EXPERIMENTAL_CXX0X__) || _MSVC_LANG >= 201402L
 	void move(String &rhs);
 	#endif
+
+	// std::string index helpers
+	static int posToIndex(size_t pos);
+	static size_t indexToPos(unsigned int index);
 };
 
 class StringSumHelper : public String
