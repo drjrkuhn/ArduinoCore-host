@@ -1,8 +1,10 @@
+# AruinoCore-host
+
 [![Unit Tests](https://github.com/drjrkuhn/ArduinoCore-host/workflows/Unit%20Tests/badge.svg)](https://github.com/drjrkuhn/ArduinoCore-host/actions?workflow=Unit+Tests)
 [![codecov](https://codecov.io/gh/drjrkuhn/ArduinoCore-host/branch/master/graph/badge.svg)](https://codecov.io/gh/drjrkuhn/ArduinoCore-host)
 [![Spell Check status](https://github.com/drjrkuhn/ArduinoCore-host/actions/workflows/spell-check.yml/badge.svg)](https://github.com/drjrkuhn/ArduinoCore-host/actions/workflows/spell-check.yml)
 
-# AruinoCore-host
+-----
 
 **ArduinoCore-API emulator with C++ STL and boost library backing**
 
