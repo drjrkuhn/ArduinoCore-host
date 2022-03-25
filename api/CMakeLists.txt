@@ -7,7 +7,6 @@ message("hostapi  CORELIB_NAME = ${CORELIB_NAME}")
 
 project(${CORELIB_NAME})
 
-
 add_library(${CORELIB_NAME}
 	ArduinoAPI.h
 	Binary.h
@@ -52,6 +51,9 @@ target_include_directories(${CORELIB_NAME}
 )
 
 set_property(TARGET ${CORELIB_NAME} PROPERTY CXX_STANDARD 14)
-target_link_libraries(${CORELIB_NAME} PRIVATE Boost::boost Boost::chrono Boost::thread)
+if(USE_BOOST_TIMING)
+  target_link_libraries(${CORELIB_NAME} PRIVATE Boost::boost Boost::chrono Boost::thread)
+else()
+endif()
 
 

@@ -1,37 +1,48 @@
 #include "Common.h"
 
+#if USE_BOOST_TIMING
 #include <boost/chrono.hpp>
 #include <boost/thread.hpp>
 
+#define TIMELIB		boost
+
+#else
+
+#include <chrono>
+#include <thread>
+
+#define TIMELIB		std
+
+#endif
 
 namespace arduino {
 
-using time_point = boost::chrono::time_point<boost::chrono::steady_clock>;
-static time_point main_start_time = boost::chrono::steady_clock::now();
+using time_point = TIMELIB::chrono::time_point<TIMELIB::chrono::steady_clock>;
+static time_point main_start_time = TIMELIB::chrono::steady_clock::now();
 
 unsigned long millis() {
-	using namespace boost;
-	return static_cast<unsigned long>(chrono::duration_cast<chrono::milliseconds>(boost::chrono::steady_clock::now() - main_start_time).count());
+	using namespace TIMELIB;
+	return static_cast<unsigned long>(TIMELIB::chrono::duration_cast<chrono::milliseconds>(TIMELIB::chrono::steady_clock::now() - main_start_time).count());
 }
 
 unsigned long micros() {
-	using namespace boost;
-	return static_cast<unsigned long>(chrono::duration_cast<chrono::microseconds>(boost::chrono::steady_clock::now() - main_start_time).count());
+	using namespace TIMELIB;
+	return static_cast<unsigned long>(TIMELIB::chrono::duration_cast<chrono::microseconds>(TIMELIB::chrono::steady_clock::now() - main_start_time).count());
 }
 
 void delay(unsigned long ms)
 {
-	using namespace boost;
-	this_thread::sleep_for(chrono::milliseconds(ms));
+	using namespace TIMELIB;
+	TIMELIB::this_thread::sleep_for(chrono::milliseconds(ms));
 }
 
 void delayMicroseconds(unsigned long us)
 {
-	boost::this_thread::sleep_for(boost::chrono::microseconds(us));
+	TIMELIB::this_thread::sleep_for(TIMELIB::chrono::microseconds(us));
 }
 
 void yield(void) {
-	boost::this_thread::yield();
+	TIMELIB::this_thread::yield();
 }
 
 
