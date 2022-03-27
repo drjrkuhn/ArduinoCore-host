@@ -23,11 +23,26 @@
 #include "StringHelpers.h"
 #include <algorithm>
 #include <sstream>
-//#include "Common.h"
-//#include "itoa.h"
-//#include "deprecated-avr-comp/avr/dtostrf.h"
 
-//#include <float.h>
+#if _MSC_VER < 1400
+
+	#include <cerrno>
+	errno_t strncpy_s(char* dest, size_t dsize, const char* src, size_t count) {
+		if (dest==NULL || dsize==0) {
+			return EINVAL;
+		}
+		if (src==NULL) {
+			dest[0] = 0;
+			return EINVAL;
+		}
+		if (dsize < count) {
+			dest[0] = 0;
+			return ERANGE;
+		}
+		strncpy(dest, src, count);
+		return 0;
+	}
+#endif
 
 namespace arduino {
 
@@ -500,7 +515,7 @@ void String::getBytes(unsigned char *buf, unsigned int bufsize, unsigned int ind
 	}
 	size_t n = bufsize - 1;
 	if (n > len - index) n = len - index;
-	strncpy((char*)buf, buffer.c_str() + index, n);
+	strncpy_s(reinterpret_cast<char*>(buf), bufsize, buffer.c_str() + index, n);
 	buf[n] = 0;
 }
 

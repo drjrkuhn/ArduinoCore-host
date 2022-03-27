@@ -4,14 +4,14 @@
 #include <boost/chrono.hpp>
 #include <boost/thread.hpp>
 
-#define TIMELIB		boost
+namespace TIMELIB = boost;
 
 #else
 
 #include <chrono>
 #include <thread>
 
-#define TIMELIB		std
+namespace TIMELIB = std;
 
 #endif
 
