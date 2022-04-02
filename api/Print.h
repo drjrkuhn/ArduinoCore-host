@@ -43,7 +43,6 @@ class Print
       void setWriteError(int err = 1) { write_error = err; }
   public:
     Print() : write_error(0) {}
-    virtual ~Print() = default;
 
     virtual size_t write(const uint8_t) = 0;
     virtual size_t write(const uint8_t * buffer, size_t size);
@@ -71,7 +70,6 @@ class Print
     size_t write(const char *buffer, size_t size) {
       return write((const uint8_t *)buffer, size);
     }
-
 
     size_t print(const __FlashStringHelper *);
     size_t print(const String &);

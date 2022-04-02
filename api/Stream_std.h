@@ -13,14 +13,14 @@ namespace arduino {
 		}
 		IOSTREAM& ios() { return _ios; }
 
-		virtual size_t write(const uint8_t byte) override {
+		size_t write(const uint8_t byte) {
 			char cc = static_cast<char>(byte);
 			return _canput && _ios.rdbuf()->sputc(cc) == cc ? 1 : 0;
 		}
-		virtual size_t write(const uint8_t* str, size_t n) override {
+		size_t write(const uint8_t* str, size_t n) {
 			return _canput ? _ios.rdbuf()->sputn(reinterpret_cast<const char*>(str), n) : 0;
 		}
-		virtual int availableForWrite() override {
+		int availableForWrite() {
 			return _canput ? std::numeric_limits<int>::max() : 0;
 		}
 
@@ -34,7 +34,7 @@ namespace arduino {
 		virtual int peek() override {
 			return static_cast<int>(_canget ? checkget(_ios.rdbuf()->sgetc()) : -1);
 		}
-		virtual size_t readBytes(char* buffer, size_t length) override {
+		size_t readBytes(char* buffer, size_t length) {
 			return _canget ? checkget(_ios.rdbuf()->sgetn(buffer, length)) : 0;
 		}
 

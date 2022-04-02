@@ -56,26 +56,25 @@ namespace arduino {
 	protected:
 		unsigned long _timeout;      // number of milliseconds to wait for the next char before aborting timed read
 		unsigned long _startMillis;  // used for timeout measurement
-		virtual int timedRead();    // private method to read stream with timeout
-		virtual int timedPeek();    // private method to peek stream with timeout
+		int timedRead();    // private method to read stream with timeout
+		int timedPeek();    // private method to peek stream with timeout
 		int peekNextDigit(LookaheadMode lookahead, bool detectDecimal); // returns the next numeric digit in the stream or -1 if timeout
 
 	public:
 		Stream() { _timeout = 1000; }
-		virtual ~Stream() = default;
 
 		virtual int available() = 0;
 		virtual int read() = 0;
 		virtual int peek() = 0;
-		virtual bool find(const char* target, size_t length);
-		virtual bool find(char target) { return find(&target, 1); }
-		virtual bool findUntil(const char* target, size_t targetLen, const char* terminate, size_t termLen);
-		virtual long parseInt(LookaheadMode lookahead = SKIP_ALL, char ignore = NO_IGNORE_CHAR);
-		virtual float parseFloat(LookaheadMode lookahead = SKIP_ALL, char ignore = NO_IGNORE_CHAR);
-		virtual size_t readBytes(char* buffer, size_t length);
-		virtual size_t readBytesUntil(char terminator, char* buffer, size_t length);
-		virtual std::string readStdString();
-		virtual std::string readStdStringUntil(char terminator);
+		bool find(const char* target, size_t length);
+		bool find(char target) { return find(&target, 1); }
+		bool findUntil(const char* target, size_t targetLen, const char* terminate, size_t termLen);
+		long parseInt(LookaheadMode lookahead = SKIP_ALL, char ignore = NO_IGNORE_CHAR);
+		float parseFloat(LookaheadMode lookahead = SKIP_ALL, char ignore = NO_IGNORE_CHAR);
+		size_t readBytes(char* buffer, size_t length);
+		size_t readBytesUntil(char terminator, char* buffer, size_t length);
+		std::string readStdString();
+		std::string readStdStringUntil(char terminator);
 
 		// parsing methods
 
@@ -127,7 +126,7 @@ namespace arduino {
 		};
 		// This allows you to search for an arbitrary number of strings.
 		// Returns index of the target that is found first or -1 if timeout occurs.
-		virtual int findMulti(struct MultiTarget* targets, int tCount);
+		int findMulti(struct MultiTarget* targets, int tCount);
 	};
 
 #undef NO_IGNORE_CHAR
