@@ -452,10 +452,18 @@ bool String::endsWith( const String &s2 ) const
 
 bool String::equalsIgnoreCase(const std::string& s2) const
 {
-	return length() == s2.length() &&
-		std::equal(buffer.begin(), buffer.end(), s2.begin(), s2.end(),
-			[](char a, char b) { return tolower(a) == tolower(b); }
-	);
+	if (length() != s2.length()) return false;
+	auto it1 = buffer.begin();
+	auto it2 = s2.begin();
+	// lengths must be same to reach here, so we can just check for end of it1
+	while (it1 != buffer.end()) {  
+		if(tolower(*it1++)!= tolower(*it2++)) return false;
+	}
+	return true;
+	// std::equal requires C++14
+    // std::equal(buffer.begin(), buffer.end(), s2.begin(), s2.end(),
+	// 		[](char a, char b) { return tolower(a) == tolower(b); }
+	// );
 }
 
 bool String::startsWith(const std::string& s2) const

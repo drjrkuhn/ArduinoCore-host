@@ -61,7 +61,7 @@ class Print
     }
     
     // iterator version of write
-    template <typename CharIT, typename std::enable_if<is_char_iterator_v<CharIT>, bool>::type = false>
+    template <typename CharIT, typename std::enable_if<is_char_iterator<CharIT>::value, bool>::type = false>
     size_t write_from(CharIT begin, CharIT end) {
         return write(&begin[0], end - begin);
     }
@@ -75,7 +75,7 @@ class Print
 
     size_t print(const __FlashStringHelper *);
     size_t print(const String &);
-    template <typename CharIT, typename std::enable_if<is_char_iterator_v<CharIT>, bool>::type = false>
+    template <typename CharIT, typename std::enable_if<is_char_iterator<CharIT>::value, bool>::type = false>
     size_t print_from(CharIT begin, CharIT end) { return write_from(begin, end); }
     size_t print(const std::string& str);
     size_t print(const char[]);
@@ -95,7 +95,7 @@ class Print
 
     size_t println(const __FlashStringHelper *);
     size_t println(const String &s);
-    template <typename CharIT, typename std::enable_if<is_char_iterator_v<CharIT>, bool>::type = false>
+    template <typename CharIT, typename std::enable_if<is_char_iterator<CharIT>::value, bool>::type = false>
     size_t println_from(CharIT begin, CharIT end) { return write_from(begin, end) + println(); }
     size_t println(const std::string& str);
     size_t println(const char[]);

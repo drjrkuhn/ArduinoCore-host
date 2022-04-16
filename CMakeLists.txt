@@ -8,11 +8,7 @@ option(USE_BOOST_TIMING "Use boost::chrono and boost::this_thread for millis and
 set(CORELIB_NAME "${PROJECT_NAME}-lib")
 
 #message("### root  CORELIB_NAME = ${CORELIB_NAME}")
-
-
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
+set(CORELIB_CXX_STANDARD cxx_std_11)
 
 if(USE_BOOST_TIMING)
     message("### Using boost:: for timing")

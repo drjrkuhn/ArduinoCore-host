@@ -107,12 +107,13 @@ add_compile_definitions(HOST)
 ##########################################################################
 
 add_executable( ${TEST_TARGET}  ${TEST_TARGET_SRCS})
-
-
+target_compile_features(${TEST_TARGET} PUBLIC ${CORELIB_CXX_STANDARD})
 add_dependencies(${TEST_TARGET}	${CORELIB_NAME})
+
 target_link_libraries(${TEST_TARGET} PRIVATE Catch2::Catch2 ${CORELIB_NAME})
 
 add_executable(work1 work/work1.cpp)
+target_compile_features(work1 PUBLIC ${CORELIB_CXX_STANDARD})
 add_dependencies(work1 ${CORELIB_NAME})
 target_link_libraries(work1 PRIVATE ${CORELIB_NAME})
 

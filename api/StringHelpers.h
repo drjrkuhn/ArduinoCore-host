@@ -11,14 +11,15 @@
 namespace arduino {
 
 	template <typename T>
-	constexpr bool is_char_iterator_v = std::is_same<typename std::iterator_traits<T>::value_type, char>::value;
+	using is_char_iterator = std::is_same<typename std::iterator_traits<T>::value_type, char>;
+	// constexpr bool is_char_iterator_v = std::is_same<typename std::iterator_traits<T>::value_type, char>::value;
 
 	/**
 	 * Append the value of a generic **unsigned** integer to a generic string with a generic base.
 	 *
 	 * Output should be the similar to the Arduino's Print.printNumber() function.
 	 */
-	template<typename numT, typename std::enable_if_t<std::is_integral<numT>::value&& std::is_unsigned<numT>::value, bool> = true>
+	template<typename numT, typename std::enable_if<std::is_integral<numT>::value&& std::is_unsigned<numT>::value, bool>::type = true>
 	std::string& appendNumber(std::string& dest, numT number, int base, bool reversed = false)
 	{
 		if (base < 2) base = 2;
@@ -41,7 +42,7 @@ namespace arduino {
 	 * Negative numbers are only represented for base=10. For other bases, negative
 	 * numbers are represented as their two's complement.
 	 */
-	template<typename numT, typename std::enable_if_t<std::is_integral<numT>::value&& std::is_signed<numT>::value, bool> = true>
+	template<typename numT, typename std::enable_if<std::is_integral<numT>::value&& std::is_signed<numT>::value, bool>::type = true>
 	std::string& appendNumber(std::string& dest, numT number, int base, bool reversed = false)
 	{
 		using unsignedN = typename std::make_unsigned<numT>::type;
@@ -71,7 +72,7 @@ namespace arduino {
 	 * Output should be the similar to the Arduino's Print.printFloat(). It does not
 	 * print exponential notation.
 	 */
-	template<typename numT, typename std::enable_if_t<std::is_floating_point<numT>::value, bool> = true>
+	template<typename numT, typename std::enable_if<std::is_floating_point<numT>::value, bool>::type = true>
 	std::string& appendNumber(std::string& dest, numT number, int decimalPlaces, bool dummy = false)
 	{
 		if (decimalPlaces < 0)
@@ -122,7 +123,7 @@ namespace arduino {
 	 *
 	 * Output should be the similar to the Arduino's Print.printNumber() function.
 	 */
-	template<typename numT, typename std::enable_if_t<std::is_integral<numT>::value || std::is_floating_point<numT>::value, bool> = true>
+	template<typename numT, typename std::enable_if<std::is_integral<numT>::value || std::is_floating_point<numT>::value, bool>::type = true>
 	std::string to_string(numT number, int baseOrPlaces)
 	{
 		std::string res;

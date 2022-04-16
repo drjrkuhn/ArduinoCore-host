@@ -104,7 +104,7 @@ namespace arduino {
 		// terminates if length characters have been read, timeout, or if the terminator character  detected
 		// returns the number of characters placed in the buffer (0 means no valid data found)
 
-		template <typename CharIT, typename std::enable_if<is_char_iterator_v<CharIT>, bool>::type = false>
+		template <typename CharIT, typename std::enable_if<is_char_iterator<CharIT>::value, bool>::type = false>
 		size_t readBytes_to(CharIT begin, CharIT end) {
 			return readBytes(&begin[0], end - begin);
 		}

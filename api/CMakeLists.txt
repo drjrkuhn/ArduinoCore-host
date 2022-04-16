@@ -49,8 +49,8 @@ target_include_directories(${CORELIB_NAME}
 	PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}
 )
+target_compile_features(${CORELIB_NAME} PUBLIC ${CORELIB_CXX_STANDARD})
 
-set_property(TARGET ${CORELIB_NAME} PROPERTY CXX_STANDARD 14)
 if(USE_BOOST_TIMING)
   target_link_libraries(${CORELIB_NAME} PRIVATE Boost::boost Boost::chrono Boost::thread)
 else()
