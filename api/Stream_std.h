@@ -136,20 +136,21 @@ namespace arduino {
 			// if (p < 0) 
 			// 	p = _ss.str().length();
 			if (g > 0 && g == p) {
-				// _ss.rdbuf()->pubseekoff(0, std::ios_base::beg, std::ios_base::in | std::ios_base::out);
+				// _ss.rdbuf()->pubseekoff(0, std::ios_base::beg, std::ios_base::in);
+				// _ss.rdbuf()->pubseekoff(0, std::ios_base::beg, std::ios_base::out);
 				// _ios_rdbuf()->pubsync();
 				// _ss.seekp(0);
 				// _ss.seekg(0);
 				// _ss.pubseekpos(0, std::ios_base::in | std::ios_base::out);
 				// _ss.str(""); // clear the string to prepare for more input
 				// _ss.rdbuf()->pubseekoff(0, std::ios_base::beg, std::ios_base::in | std::ios_base::out);
+				// std::stringstream temp;
+				// temp.copyfmt(_ss);
+				// _ss.str(std::string());
 				std::stringstream temp;
-				temp.copyfmt(_ss);
-				_ss.str(std::string());
+				_ss.swap(temp);
 				_ss.clear();
-				_ss.copyfmt(temp);
-				_canget = _ss.tellg() >= 0; 
-				_canput = _ss.tellp() >= 0; 
+				// _ss.copyfmt(temp);
 			}
 		}
 		#endif
