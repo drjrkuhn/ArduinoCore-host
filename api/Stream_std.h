@@ -129,7 +129,7 @@ namespace arduino {
 		}
 
 	protected:
-		#if 1
+		#if 0
 		virtual void update_buf() override {
 			std::lock_guard<std::mutex> _(_guard);
 			std::streampos g = _ios.tellg(), p = _ios.tellp();
@@ -147,9 +147,9 @@ namespace arduino {
 				// std::stringstream temp;
 				// temp.copyfmt(_ss);
 				// _ss.str(std::string());
-				std::stringstream temp;
-				_ss.swap(temp);
-				_ss.clear();
+				// std::stringstream temp;
+				// _ss.swap(temp);
+				// _ss.clear();
 				// _ss.copyfmt(temp);
 			}
 		}
