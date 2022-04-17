@@ -24,7 +24,7 @@ namespace arduino {
 			return _canput && _ios.rdbuf()->sputc(cc) == cc ? 1 : 0;
 		}
 		virtual size_t write(const uint8_t* str, size_t n) override {
-			std::lock_guard<std::mutex> _(_guard); 
+			std::lock_guard<std::mutex> _(_guard);
 			return _canput ? _ios.rdbuf()->sputn(reinterpret_cast<const char*>(str), n) : 0;
 		}
 		virtual int availableForWrite() override {
@@ -38,27 +38,36 @@ namespace arduino {
 		}
 
 		virtual int read() override {
-			std::lock_guard<std::mutex> _(_guard); 
-			return static_cast<int>(_canget ? checkget(_ios.rdbuf()->sbumpc()) : -1);
+			_guard.lock();
+			int ret = static_cast<int>(_canget ? _ios.rdbuf()->sbumpc() : -1);
+			_guard.unlock();
+			update_buf();
+			return ret;
 		}
 		virtual int peek() override {
-			std::lock_guard<std::mutex> _(_guard); 
-			return static_cast<int>(_canget ? checkget(_ios.rdbuf()->sgetc()) : -1);
+			_guard.lock();
+			int ret = static_cast<int>(_canget ? _ios.rdbuf()->sgetc() : -1);
+			_guard.unlock();
+			update_buf();
+			return ret;
 		}
 		virtual size_t readBytes(char* buffer, size_t length) override {
-			std::lock_guard<std::mutex> _(_guard); 
-			return _canget ? checkget(_ios.rdbuf()->sgetn(buffer, length)) : 0;
+			_guard.lock();
+			size_t ret = _canget ? _ios.rdbuf()->sgetn(buffer, length) : 0;
+			_guard.unlock();
+			update_buf();
+			return ret;
 		}
 
 	protected:
-		virtual size_t checkget(size_t input) {
-			return input;
-		}
+		virtual void update_buf() {}
+
 		void init(IOSTREAM& ios) {  
 			std::lock_guard<std::mutex> _(_guard); 
 			_canget = ios.tellg() >= 0; 
 			_canput = ios.tellp() >= 0; 
 		}
+
 		// protected default constructor for derived
 		struct no_init_tag {};
 		Stream_stdstream(IOSTREAM& ios, no_init_tag) : _ios(ios) {}
@@ -120,11 +129,13 @@ namespace arduino {
 		}
 
 	protected:
-		virtual size_t checkget(size_t input) override {
+		virtual void update_buf() override {
+			std::lock_guard<std::mutex> _(_guard); 
 			std::streampos g = _ios.tellg(), p = _ios.tellp();
 			if (p < 0) p = _ss.str().length();
-			if (g > 0 && g == p) _ss.str(""); // clear the string to prepare for more input
-			return input;
+			if (g > 0 && g == p) {
+				_ss.str(""); // clear the string to prepare for more input
+			}
 		}
 		std::stringstream _ss;
 	};
