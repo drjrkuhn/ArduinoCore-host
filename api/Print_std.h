@@ -8,6 +8,7 @@
 #include <ios>
 #include <sstream>
 #include <type_traits>
+#include <mutex>
 #include "Print.h"
 
 namespace arduino {
@@ -25,11 +26,13 @@ namespace arduino {
 		OSTREAM& ostream() { return _ostream; }
 
 		virtual size_t write(const uint8_t c) override {
+			std::lock_guard<std::mutex> _(_guard); 
 			char cc = static_cast<char>(c);
 			return _ostream.rdbuf()->sputc(cc) == cc ? 1 : 0;
 		}
 
 		virtual size_t write(const uint8_t* str, size_t n) override {
+			std::lock_guard<std::mutex> _(_guard); 
 			return _ostream.rdbuf()->sputn(reinterpret_cast<const char*>(str), n);
 		}
 
@@ -41,6 +44,7 @@ namespace arduino {
 		OSTREAM& operator<< (T t) { return ostream() << t; }
 	protected:
 		OSTREAM& _ostream;
+		mutable std::mutex _guard;
 	};
 
 	/**
@@ -60,16 +64,27 @@ namespace arduino {
 			: Print_stdostream(_oss), _oss(std::ios_base::out | std::ios_base::app) {
 		}
 
-		std::string str() const { return _oss.str(); }
-		void str(const std::string s) { _oss.str(s); }
-		void clear() { _oss.str(""); }
+		std::string str() const { 
+			std::lock_guard<std::mutex> _(_guard); 
+			return _oss.str(); 
+		}
+		void str(const std::string s) { 
+			std::lock_guard<std::mutex> _(_guard); 
+			_oss.str(s); 
+		}
+		void clear() { 
+			std::lock_guard<std::mutex> _(_guard); 
+			_oss.str(""); 
+		}
 
 		/// number of bytes available in write buffer. 
 		/// For stringstream it will return 0 just before reallocating more buffer space
 		virtual int availableForWrite() override {
-			return static_cast<int>(str().capacity() - str().length());
+			std::lock_guard<std::mutex> _(_guard); 
+			return static_cast<int>(_oss.str().capacity() - _oss.str().length());
 		}
 		virtual size_t printTo(Print& p) const override {
+			std::lock_guard<std::mutex> _(_guard); 
 			return p.write(_oss.str());
 		}
 	protected:

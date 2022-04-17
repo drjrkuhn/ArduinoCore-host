@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <mutex>
 #include "Stream.h"
 
 namespace arduino {
@@ -12,30 +13,40 @@ namespace arduino {
 		Stream_stdstream(IOSTREAM& ios) : _ios(ios) {
 			init(_ios);
 		}
-		IOSTREAM& ios() { return _ios; }
+		IOSTREAM& ios() { 
+			std::lock_guard<std::mutex> _(_guard); 
+			return _ios; 
+		}
 
 		virtual size_t write(const uint8_t byte) override {
+			std::lock_guard<std::mutex> _(_guard); 
 			char cc = static_cast<char>(byte);
 			return _canput && _ios.rdbuf()->sputc(cc) == cc ? 1 : 0;
 		}
 		virtual size_t write(const uint8_t* str, size_t n) override {
+			std::lock_guard<std::mutex> _(_guard); 
 			return _canput ? _ios.rdbuf()->sputn(reinterpret_cast<const char*>(str), n) : 0;
 		}
 		virtual int availableForWrite() override {
+			std::lock_guard<std::mutex> _(_guard); 
 			return _canput ? std::numeric_limits<int>::max() : 0;
 		}
 
 		virtual int available() override {
+			std::lock_guard<std::mutex> _(_guard); 
 			return static_cast<int>(_canget ? _ios.rdbuf()->in_avail() : 0);
 		}
 
 		virtual int read() override {
+			std::lock_guard<std::mutex> _(_guard); 
 			return static_cast<int>(_canget ? checkget(_ios.rdbuf()->sbumpc()) : -1);
 		}
 		virtual int peek() override {
+			std::lock_guard<std::mutex> _(_guard); 
 			return static_cast<int>(_canget ? checkget(_ios.rdbuf()->sgetc()) : -1);
 		}
 		virtual size_t readBytes(char* buffer, size_t length) override {
+			std::lock_guard<std::mutex> _(_guard); 
 			return _canget ? checkget(_ios.rdbuf()->sgetn(buffer, length)) : 0;
 		}
 
@@ -43,13 +54,18 @@ namespace arduino {
 		virtual size_t checkget(size_t input) {
 			return input;
 		}
-		void init(IOSTREAM& ios) { _canget = ios.tellg() >= 0; _canput = ios.tellp() >= 0; }
+		void init(IOSTREAM& ios) {  
+			std::lock_guard<std::mutex> _(_guard); 
+			_canget = ios.tellg() >= 0; 
+			_canput = ios.tellp() >= 0; 
+		}
 		// protected default constructor for derived
 		struct no_init_tag {};
 		Stream_stdstream(IOSTREAM& ios, no_init_tag) : _ios(ios) {}
 
 		IOSTREAM& _ios;
 		bool _canget, _canput;
+		mutable std::mutex _guard;
 	};
 
 	class Stream_stdstring : public Stream_stdstream<std::stringstream> {
@@ -65,12 +81,24 @@ namespace arduino {
 			init(_ss);
 			// NOTE: open in append mode so we don't overwrite the intiial value
 		}
-		std::string str() const { return _ss.str(); }
-		void str(const std::string s) { _ss.str(s); }
-		void clear() { _ss.str(""); }
+		std::string str() const { 
+			std::lock_guard<std::mutex> _(_guard); 
+			return _ss.str(); 
+		}
+		void str(const std::string s) { 
+			std::lock_guard<std::mutex> _(_guard); 
+			_ss.str(s); 
+		}
+		void clear() { 
+			std::lock_guard<std::mutex> _(_guard); 
+			_ss.str(""); 
+		}
 
-		std::string bufferStr() const {
+		/** Diagnostic version of str. Shows g and p pointers. */
+		std::string buffer_str() const {
+			std::lock_guard<std::mutex> _(_guard); 
 			std::string buf = _ss.str();
+			// convert to signed positions
 			long len = static_cast<long>(buf.length());
 			long g = static_cast<long>(_ios.tellg());
 			long p = static_cast<long>(_ios.tellp());
@@ -95,7 +123,7 @@ namespace arduino {
 		virtual size_t checkget(size_t input) override {
 			std::streampos g = _ios.tellg(), p = _ios.tellp();
 			if (p < 0) p = _ss.str().length();
-			if (g > 0 && g == p) clear();
+			if (g > 0 && g == p) _ss.str(""); // clear the string to prepare for more input
 			return input;
 		}
 		std::stringstream _ss;

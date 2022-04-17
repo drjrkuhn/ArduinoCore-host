@@ -81,7 +81,7 @@ public:
 	void str(const std::string s) { _ss.str(s); }
 	void clear() { _ss.str(""); }
 
-	std::string bufferStr() const {
+	std::string buffer_str() const {
 		string buf = _ss.str();
 		int len = buf.length(), g = _ios.tellg(), p = _ios.tellp();
 		if (p < 0) p = len;
@@ -143,22 +143,22 @@ int main(int argc, char* argv[])
 	stream.setTimeout(10);
 
 	stream.print("a 123 Hello ");
-	cout << "\t\t\t" << stream.bufferStr() << endl;
+	cout << "\t\t\t" << stream.buffer_str() << endl;
 	stream.print("world");
-	cout << "\t\t\t" << stream.bufferStr() << endl;
+	cout << "\t\t\t" << stream.buffer_str() << endl;
 	cout << "first char: " << char(stream.read()) << endl;
-	cout << "\t\t\t" << stream.bufferStr() << endl;
+	cout << "\t\t\t" << stream.buffer_str() << endl;
 	cout << "first int: " << stream.parseInt() << endl;
-	cout << "\t\t\t" << stream.bufferStr() << endl;
+	cout << "\t\t\t" << stream.buffer_str() << endl;
 	cout << "first word: '" << stream.readStdString() << "'" << endl;
-	cout << "\t\t\t" << stream.bufferStr() << endl;
+	cout << "\t\t\t" << stream.buffer_str() << endl;
 	cout << "next word: '" << stream.readStdString() << "'" << endl;
 	//ss.str("");
-	cout << "\t\t\t" << stream.bufferStr() << endl;
+	cout << "\t\t\t" << stream.buffer_str() << endl;
 	stream.print(" goodbye!");
-	cout << "\t\t\t" << stream.bufferStr() << endl;
+	cout << "\t\t\t" << stream.buffer_str() << endl;
 	cout << "next word: '" << stream.readStdString() << "'" << endl;
-	cout << "\t\t\t" << stream.bufferStr() << endl;
+	cout << "\t\t\t" << stream.buffer_str() << endl;
 
 	return 0;
 }
