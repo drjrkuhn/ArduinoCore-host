@@ -141,8 +141,8 @@ namespace arduino {
 				// _ss.seekp(0);
 				// _ss.seekg(0);
 				// _ss.pubseekpos(0, std::ios_base::in | std::ios_base::out);
-				_ss.str(""); // clear the string to prepare for more input
-				_ss.rdbuf()->pubseekoff(0, std::ios_base::beg, std::ios_base::in | std::ios_base::out);
+				// _ss.str(""); // clear the string to prepare for more input
+				// _ss.rdbuf()->pubseekoff(0, std::ios_base::beg, std::ios_base::in | std::ios_base::out);
 			}
 		}
 		#endif
