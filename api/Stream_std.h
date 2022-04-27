@@ -7,6 +7,7 @@
 
 namespace arduino {
 
+	// TODO: convert IOSTREAM from pointer to reference. Same as Print_stdostream.
 	template <class IOSTREAM>
 	class Stream_stdstream : public Stream {
 	public:
