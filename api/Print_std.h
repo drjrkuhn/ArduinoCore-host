@@ -13,6 +13,20 @@
 
 namespace arduino {
 
+	/*
+     * ## Rules-of-thumb for mutex locking
+     * 
+     * If a method with a std::lock_guard calls another method with its own
+     * std::lock_guard, this will create a nested mutex halt condition. To keep
+     * from nested locks, we stick to a few set of rules:
+     * 
+     *    - only public methods have lock guards
+     *    - private/protected methods don't have lock guards
+     *    - public methods don't call each other (no lock overlap)
+     *    - public methods call private/protected unlocked _impl methods
+	 */
+
+
 	/**
 	 * Adapts a OSTREAM for printing.
 	 *
@@ -24,6 +38,7 @@ namespace arduino {
 	public:
 		Print_stdostream(OSTREAM& os) : _ostream(os) {}
 		OSTREAM& ostream() { return _ostream; }
+
 
 		virtual size_t write(const uint8_t c) override {
 			std::lock_guard<std::mutex> _(_guard); 
@@ -37,7 +52,13 @@ namespace arduino {
 		}
 
 		virtual int availableForWrite() override {
+			std::lock_guard<std::mutex> _(_guard); 
 			return std::numeric_limits<int>::max();
+		}
+
+		virtual void flush() override { 
+			std::lock_guard<std::mutex> _(_guard); 
+			return Print::flush();
 		}
 
 		template<typename T>

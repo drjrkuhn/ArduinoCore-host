@@ -7,14 +7,27 @@
 
 namespace arduino {
 
-	// TODO: convert IOSTREAM from pointer to reference. Same as Print_stdostream.
+	/*
+     * ## Rules-of-thumb for mutex locking
+     * 
+     * If a method with a std::lock_guard calls another method with its own
+     * std::lock_guard, this will create a nested mutex halt condition. To keep
+     * from nested locks, we stick to a few set of rules:
+     * 
+     *    - only public methods have lock guards
+     *    - private/protected methods don't have lock guards
+     *    - public methods don't call each other (no lock overlap)
+     *    - public methods call private/protected unlocked _impl methods
+	 */
+
 	template <class IOSTREAM>
 	class Stream_stdstream : public Stream {
 	public:
-		Stream_stdstream(IOSTREAM* ios) : _ios(ios) {
+		Stream_stdstream(IOSTREAM& ios) : _ios(ios) {
+			std::lock_guard<std::mutex> _(_guard); 
 			init();
 		}
-		IOSTREAM* ios() { 
+		IOSTREAM& ios() { 
 			std::lock_guard<std::mutex> _(_guard); 
 			return _ios; 
 		}
@@ -22,11 +35,11 @@ namespace arduino {
 		virtual size_t write(const uint8_t byte) override {
 			std::lock_guard<std::mutex> _(_guard); 
 			char cc = static_cast<char>(byte);
-			return _canput && _ios->rdbuf()->sputc(cc) == cc ? 1 : 0;
+			return _canput && _ios.rdbuf()->sputc(cc) == cc ? 1 : 0;
 		}
 		virtual size_t write(const uint8_t* str, size_t n) override {
 			std::lock_guard<std::mutex> _(_guard);
-			return _canput ? _ios->rdbuf()->sputn(reinterpret_cast<const char*>(str), n) : 0;
+			return _canput ? _ios.rdbuf()->sputn(reinterpret_cast<const char*>(str), n) : 0;
 		}
 		virtual int availableForWrite() override {
 			std::lock_guard<std::mutex> _(_guard); 
@@ -35,27 +48,24 @@ namespace arduino {
 
 		virtual int available() override {
 			std::lock_guard<std::mutex> _(_guard); 
-			return static_cast<int>(_canget ? _ios->rdbuf()->in_avail() : 0);
+			return static_cast<int>(_canget ? _ios.rdbuf()->in_avail() : 0);
 		}
 
 		virtual int read() override {
-			_guard.lock();
-			int ret = static_cast<int>(_canget ? _ios->rdbuf()->sbumpc() : -1);
-			_guard.unlock();
+			std::lock_guard<std::mutex> _(_guard); 
+			int ret = static_cast<int>(_canget ? _ios.rdbuf()->sbumpc() : -1);
 			update_buf();
 			return ret;
 		}
 		virtual int peek() override {
-			_guard.lock();
-			int ret = static_cast<int>(_canget ? _ios->rdbuf()->sgetc() : -1);
-			_guard.unlock();
+			std::lock_guard<std::mutex> _(_guard); 
+			int ret = static_cast<int>(_canget ? _ios.rdbuf()->sgetc() : -1);
 			update_buf();
 			return ret;
 		}
 		virtual size_t readBytes(char* buffer, size_t length) override {
-			_guard.lock();
-			size_t ret = _canget ? _ios->rdbuf()->sgetn(buffer, length) : 0;
-			_guard.unlock();
+			std::lock_guard<std::mutex> _(_guard); 
+			size_t ret = _canget ? _ios.rdbuf()->sgetn(buffer, length) : 0;
 			update_buf();
 			return ret;
 		}
@@ -64,16 +74,15 @@ namespace arduino {
 		virtual void update_buf() {}
 
 		void init() {  
-			std::lock_guard<std::mutex> _(_guard); 
-			_canget = _ios->tellg() >= 0; 
-			_canput = _ios->tellp() >= 0; 
+			_canget = _ios.tellg() >= 0; 
+			_canput = _ios.tellp() >= 0; 
 		}
 
 		// protected default constructor for derived
 		struct no_init_tag {};
-		Stream_stdstream(IOSTREAM* ios, no_init_tag) : _ios(ios) {}
+		Stream_stdstream(IOSTREAM& ios, no_init_tag) : _ios(ios) {}
 
-		IOSTREAM* _ios;
+		IOSTREAM& _ios;
 		bool _canget, _canput;
 		mutable std::mutex _guard;
 	};
@@ -82,12 +91,12 @@ namespace arduino {
 	public:
 		Stream_stdstring(
 			const std::string str, std::ios_base::openmode which = std::ios_base::in | std::ios_base::out | std::ios_base::app)
-			: Stream_stdstream(&_ss, (no_init_tag())), _ss(str, which) {
+			: Stream_stdstream(_ss, (no_init_tag())), _ss(str, which) {
 			init();
 			// NOTE: open in append mode so we don't overwrite the intiial value
 		}
 		Stream_stdstring(std::ios_base::openmode which = std::ios_base::in | std::ios_base::out)
-			: Stream_stdstream(&_ss, (no_init_tag())), _ss(which) {
+			: Stream_stdstream(_ss, (no_init_tag())), _ss(which) {
 			init();
 			// NOTE: open in append mode so we don't overwrite the intiial value
 		}
@@ -102,7 +111,7 @@ namespace arduino {
 		void clear() { 
 			std::lock_guard<std::mutex> _(_guard); 
 			_ss.str("");
-			_ios = &_ss;
+			std::swap(_ios, _ss);
 		}
 
 		/** Diagnostic version of str. Shows g and p pointers. */
@@ -111,8 +120,8 @@ namespace arduino {
 			std::string buf = _ss.str();
 			// convert to signed positions
 			long len = static_cast<long>(buf.length());
-			long g = static_cast<long>(_ios->tellg());
-			long p = static_cast<long>(_ios->tellp());
+			long g = static_cast<long>(_ios.tellg());
+			long p = static_cast<long>(_ios.tellp());
 			if (p < 0)
 				p = len;
 			bool samegp = g == p;
@@ -133,8 +142,7 @@ namespace arduino {
 	protected:
 		#if 1
 		virtual void update_buf() override {
-			std::lock_guard<std::mutex> _(_guard);
-			std::streampos g = _ios->tellg(), p = _ios->tellp();
+			std::streampos g = _ios.tellg(), p = _ios.tellp();
 			if (p < 0) 
 				p = _ss.str().length();
 			if (g > 0 && g == p) {
@@ -143,7 +151,7 @@ namespace arduino {
 				_ss.swap(temp);
 				_ss.clear();
 				_ss.copyfmt(temp);
-				_ios = &_ss;
+				std::swap(_ios, _ss);
 			}
 		}
 		#endif
