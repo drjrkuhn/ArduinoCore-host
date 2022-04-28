@@ -67,7 +67,7 @@ namespace arduino {
 				return 0;
 			// force update of input buffer pointers
 			_ios.rdbuf()->sgetc();
-			return _ios.rdbuf()->in_avail();
+			return static_cast<int>(_ios.rdbuf()->in_avail());
 		}
 
 		virtual int read() override {
