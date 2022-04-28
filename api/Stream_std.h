@@ -6,6 +6,9 @@
 #include <string>
 #include "Stream.h"
 
+#define STREAM_STRINGSTREAM_KEEP_SMALL 1
+
+
 namespace arduino {
 
 	/*
@@ -62,7 +65,7 @@ namespace arduino {
 			std::lock_guard<std::mutex> _(_guard);
 			if (!_canget)
 				return 0;
-			// force update of input buffer
+			// force update of input buffer pointers
 			_ios.rdbuf()->sgetc();
 			return _ios.rdbuf()->in_avail();
 		}
@@ -156,9 +159,10 @@ namespace arduino {
 		}
 
 	protected:
-		#if 0
-		// JUST DOESN'T WORK MULTITHREADED
+#if STREAM_STRINGSTREAM_KEEP_SMALL
 		virtual void update_buf() override {
+			// force update of pointers
+			_ios.rdbuf()->sgetc();
 			std::streampos g = _ios.tellg(), p = _ios.tellp();
 			if (p < 0) 
 				p = _ss.str().length();
@@ -171,7 +175,7 @@ namespace arduino {
 				std::swap(_ios, _ss);
 			}
 		}
-		#endif
+#endif
 		std::stringstream _ss;
 	};
 
