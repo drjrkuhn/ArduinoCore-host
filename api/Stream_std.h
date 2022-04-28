@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <mutex>
+#include <string>
 #include "Stream.h"
 
 namespace arduino {
@@ -46,9 +47,24 @@ namespace arduino {
 			return _canput ? std::numeric_limits<int>::max() : 0;
 		}
 
+		/**
+		 * How many characters are available for reading.
+		 * 
+		 * **MECHANISM NOTES**
+		 * std::basic_streambuf::in_avail() returns an _estimate_
+		 * of the number of characters. In many implementations, in_avail()
+		 * does not call the protected underflow() to update the 
+		 * input stream pointers. Calling sgetc() forces underflow()
+		 * and allows in_avail() to report at least one character
+		 * if the input stream has data.
+		 */
 		virtual int available() override {
-			std::lock_guard<std::mutex> _(_guard); 
-			return static_cast<int>(_canget ? _ios.rdbuf()->in_avail() : 0);
+			std::lock_guard<std::mutex> _(_guard);
+			if (!_canget)
+				return 0;
+			// force update of input buffer
+			_ios.rdbuf()->sgetc();
+			return _ios.rdbuf()->in_avail();
 		}
 
 		virtual int read() override {
@@ -140,7 +156,8 @@ namespace arduino {
 		}
 
 	protected:
-		#if 1
+		#if 0
+		// JUST DOESN'T WORK MULTITHREADED
 		virtual void update_buf() override {
 			std::streampos g = _ios.tellg(), p = _ios.tellp();
 			if (p < 0) 
