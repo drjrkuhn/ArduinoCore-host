@@ -15,7 +15,5 @@ This project is inspired by both the [Arduino-Emulator](https://github.com/pscha
 sprinkled with ideas from ArduinoStreamUtils (https://github.com/bblanchon/ArduinoStreamUtils/tree/master/extras/test/cores/avr)
 and the ArduinoCore-API test mocks.
 
-## Do not use yet! This is my initial development fork
-
 branched From the [ArduinoCore-API](https://github.com/arduino/ArduinoCore-API)
 
